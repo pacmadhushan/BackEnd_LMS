@@ -1,11 +1,15 @@
 package lk.ijse.dep9.api;
 
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
+import lk.ijse.dep9.dto.MemberDTO;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,27 +57,47 @@ public class MemberServlet extends HttpServlet {
                 Statement stm = connection.createStatement();
                 ResultSet rst = stm.executeQuery("SELECT * FROM member");
 
+                ArrayList<MemberDTO> members = new ArrayList<>();
+
+                while (rst.next()){
+                    String id=rst.getString("id");
+                    String name=rst.getString("name");
+                    String address=rst.getString("address");
+                    String contact=rst.getString("contact");
+
+                    MemberDTO dto = new MemberDTO(id, name, address, contact);
+                    members.add(dto);
+                }
+
+//                JsonbConfig config = new JsonbConfig();
+//                config.withPropertyOrderStrategy(JsonbConfig.PROPERTY_ORDER_STRATEGY);
+                Jsonb jsonb = JsonbBuilder.create();
+                response.setContentType("application/json");
+                jsonb.toJson(members,response.getWriter());
+
+//                String json = jsonb.toJson(members);
+//                response.getWriter().println(json);
+
                 /*[{"id":"","name"}]*/
 
-                StringBuilder sb = new StringBuilder();
-                while (rst.next()){
-                    String id =rst.getString("id");
-                    String name =rst.getString("name");
-                    String address =rst.getString("address");
-                    String contact =rst.getString("contact");
-                    String jsonObj ="{\n" +
-                            "  \"id\": " +id+
-                            " : \"id\",\n" +
-                            "  \"name\": "+name+"\"name\",\n" +
-                            "  \"address\": "+address+"\"address\",\n" +
-                            "  \"contact\": "+contact+"\"contact\"\n" +
-                            "}";
-                    sb.append(jsonObj).append(",");
-                }
-                sb.deleteCharAt(sb.length()-1);
-                sb.append("]");
-                response.setContentType("application/json");
-                response.getWriter().println(sb);
+//                StringBuilder sb = new StringBuilder();
+//                while (rst.next()){
+//                    String id =rst.getString("id");
+//                    String name =rst.getString("name");
+//                    String address =rst.getString("address");
+//                    String contact =rst.getString("contact");
+//                    String jsonObj ="{\n" +
+//                            "  \"id\": " +id+ " : \"id\",\n" +
+//                            "  \"name\": "+name+"\"name\",\n" +
+//                            "  \"address\": "+address+"\"address\",\n" +
+//                            "  \"contact\": "+contact+"\"contact\"\n" +
+//                            "}";
+//                    sb.append(jsonObj).append(",");
+//                }
+//                sb.deleteCharAt(sb.length()-1);
+//                sb.append("]");
+//                response.setContentType("application/json");
+//                response.getWriter().println(sb);
 
             }catch (SQLException e){
                 throw new RuntimeException(e);
